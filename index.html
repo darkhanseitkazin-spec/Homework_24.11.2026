@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Трекер задач</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="page">
+    <header class="page__header">
+      <p class="eyebrow">Мои проекты</p>
+      <h1>Трекер задач</h1>
+      <p class="page__description">Добавляйте задачи и держите сроки под контролем.</p>
+    </header>
+
+    <section class="card" aria-labelledby="new-task-title">
+      <h2 id="new-task-title">Новая задача</h2>
+
+      <form id="task-form" novalidate>
+        <div class="form-grid">
+          <label class="field field--wide">
+            <span>Название</span>
+            <input id="title" name="title" type="text" placeholder="Например, написать отчёт" required>
+          </label>
+
+          <label class="field">
+            <span>Проект</span>
+            <input id="project" name="project" type="text" placeholder="Например, Альфа" required>
+          </label>
+
+          <label class="field">
+            <span>Срок</span>
+            <input id="deadline" name="deadline" type="date" required>
+          </label>
+
+          <label class="field">
+            <span>Оценка в часах</span>
+            <input id="estimate" name="estimate" type="number" min="0.5" step="0.5" placeholder="1,5" inputmode="decimal" required>
+          </label>
+
+          <label class="field">
+            <span>Статус</span>
+            <select id="status" name="status" required>
+              <option value="В плане">В плане</option>
+              <option value="В работе">В работе</option>
+              <option value="Готово">Готово</option>
+            </select>
+          </label>
+        </div>
+
+        <p id="form-error" class="form-error" role="alert" aria-live="polite"></p>
+        <button class="button" type="submit">Добавить задачу</button>
+      </form>
+    </section>
+
+    <section class="tasks" aria-labelledby="tasks-title">
+      <div class="tasks__heading">
+        <h2 id="tasks-title">Задачи</h2>
+        <span id="tasks-count" class="tasks__count">0 задач</span>
+      </div>
+      <div id="tasks-list" class="tasks__list"></div>
+      <p id="empty-state" class="empty-state">Задач пока нет. Добавьте первую задачу выше.</p>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
