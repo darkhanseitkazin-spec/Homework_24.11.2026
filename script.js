@@ -6,6 +6,8 @@ const errorMessage = document.querySelector("#form-error");
 const tasksList = document.querySelector("#tasks-list");
 const emptyState = document.querySelector("#empty-state");
 const tasksCount = document.querySelector("#tasks-count");
+const projectSummaries = document.querySelector("#project-summaries");
+const summariesEmptyState = document.querySelector("#summaries-empty-state");
 
 let tasks = loadTasks();
 
@@ -105,10 +107,80 @@ function createTaskElement(task) {
   return taskElement;
 }
 
+function getProjectSummaries() {
+  const summaries = new Map();
+
+  tasks.forEach((task) => {
+    const summary = summaries.get(task.project) || {
+      project: task.project,
+      tasksCount: 0,
+      totalHours: 0,
+      doneHours: 0,
+      remainingHours: 0
+    };
+
+    summary.tasksCount += 1;
+    summary.totalHours += task.estimate;
+
+    if (task.status === "Готово") {
+      summary.doneHours += task.estimate;
+    } else {
+      summary.remainingHours += task.estimate;
+    }
+
+    summaries.set(task.project, summary);
+  });
+
+  return [...summaries.values()];
+}
+
+function createSummaryMetric(label, value) {
+  const metric = document.createElement("div");
+  const term = document.createElement("dt");
+  const description = document.createElement("dd");
+
+  metric.className = "summary__metric";
+  term.className = "summary__label";
+  description.className = "summary__value";
+  term.textContent = label;
+  description.textContent = value;
+  metric.append(term, description);
+
+  return metric;
+}
+
+function createProjectSummaryElement(summary) {
+  const summaryElement = document.createElement("article");
+  const title = document.createElement("h3");
+  const metrics = document.createElement("dl");
+
+  summaryElement.className = "summary";
+  title.className = "summary__title";
+  metrics.className = "summary__metrics";
+  title.textContent = summary.project;
+  metrics.append(
+    createSummaryMetric("Задачи", `${summary.tasksCount} ${getTasksWord(summary.tasksCount)}`),
+    createSummaryMetric("Всего", formatEstimate(summary.totalHours)),
+    createSummaryMetric("Готово", formatEstimate(summary.doneHours)),
+    createSummaryMetric("Осталось", formatEstimate(summary.remainingHours))
+  );
+  summaryElement.append(title, metrics);
+
+  return summaryElement;
+}
+
+function renderProjectSummaries() {
+  const summaries = getProjectSummaries();
+
+  projectSummaries.replaceChildren(...summaries.map(createProjectSummaryElement));
+  summariesEmptyState.hidden = summaries.length > 0;
+}
+
 function renderTasks() {
   tasksList.replaceChildren(...tasks.map(createTaskElement));
   emptyState.hidden = tasks.length > 0;
   tasksCount.textContent = `${tasks.length} ${getTasksWord(tasks.length)}`;
+  renderProjectSummaries();
 }
 
 function validateTask(task) {
