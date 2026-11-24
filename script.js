@@ -85,26 +85,39 @@ function createTaskElement(task) {
   const title = document.createElement("h3");
   const project = document.createElement("span");
   const status = document.createElement("span");
+  const deleteButton = document.createElement("button");
 
   taskElement.className = "task";
   main.className = "task__main";
   title.className = "task__title";
   project.className = "task__project";
   status.className = `status ${getStatusClass(task.status)}`;
+  deleteButton.className = "task__delete";
+  deleteButton.type = "button";
 
   title.textContent = task.title;
   project.textContent = task.project;
   status.textContent = task.status;
+  deleteButton.textContent = "Удалить";
+  deleteButton.setAttribute("aria-label", `Удалить задачу «${task.title}»`);
+  deleteButton.addEventListener("click", () => deleteTask(task.id));
 
   main.append(title, project);
   taskElement.append(
     main,
     createMeta("Срок", formatDate(task.deadline)),
     createMeta("Оценка", formatEstimate(task.estimate)),
-    status
+    status,
+    deleteButton
   );
 
   return taskElement;
+}
+
+function deleteTask(taskId) {
+  tasks = tasks.filter((task) => task.id !== taskId);
+  saveTasks();
+  renderTasks();
 }
 
 function getProjectSummaries() {

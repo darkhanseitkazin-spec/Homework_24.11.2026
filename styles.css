@@ -228,7 +228,7 @@ h2 {
 
 .task {
   display: grid;
-  grid-template-columns: minmax(220px, 1.6fr) repeat(3, minmax(110px, 0.65fr));
+  grid-template-columns: minmax(220px, 1.6fr) repeat(3, minmax(110px, 0.65fr)) auto;
   align-items: center;
   gap: 20px;
   padding: 20px 22px;
@@ -286,6 +286,28 @@ h2 {
   background: #d1fae5;
 }
 
+.task__delete {
+  min-height: 40px;
+  padding: 9px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  color: #b91c1c;
+  background: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.task__delete:hover {
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.task__delete:focus-visible {
+  outline: 3px solid rgba(220, 38, 38, 0.2);
+  outline-offset: 2px;
+}
+
 .empty-state {
   margin: 0;
   padding: 32px;
@@ -319,6 +341,10 @@ h2 {
   .task__main {
     grid-column: 1 / -1;
   }
+
+  .task__delete {
+    justify-self: end;
+  }
 }
 
 @media (max-width: 480px) {
@@ -336,6 +362,10 @@ h2 {
 
   .task__main {
     grid-column: auto;
+  }
+
+  .task__delete {
+    width: 100%;
   }
 
   .summary__metrics {
