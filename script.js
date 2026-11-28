@@ -1,8 +1,14 @@
 const STORAGE_KEY = "project-task-tracker-tasks";
+const CONTRACTS_STORAGE_KEY = "project-task-tracker-contracts";
 const ALLOWED_STATUSES = ["В плане", "В работе", "Готово"];
 
 const form = document.querySelector("#task-form");
 const errorMessage = document.querySelector("#form-error");
+const contractForm = document.querySelector("#contract-form");
+const contractFormError = document.querySelector("#contract-form-error");
+const contractSelect = document.querySelector("#contract");
+const contractsList = document.querySelector("#contracts-list");
+const contractsEmptyState = document.querySelector("#contracts-empty-state");
 const tasksList = document.querySelector("#tasks-list");
 const emptyState = document.querySelector("#empty-state");
 const tasksCount = document.querySelector("#tasks-count");
@@ -10,6 +16,7 @@ const projectSummaries = document.querySelector("#project-summaries");
 const summariesEmptyState = document.querySelector("#summaries-empty-state");
 
 let tasks = loadTasks();
+let contracts = loadContracts();
 
 function loadTasks() {
   try {
@@ -22,6 +29,19 @@ function loadTasks() {
 
 function saveTasks() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+}
+
+function loadContracts() {
+  try {
+    const savedContracts = JSON.parse(localStorage.getItem(CONTRACTS_STORAGE_KEY));
+    return Array.isArray(savedContracts) ? savedContracts : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function saveContracts() {
+  localStorage.setItem(CONTRACTS_STORAGE_KEY, JSON.stringify(contracts));
 }
 
 function formatDate(date) {
@@ -86,6 +106,7 @@ function createTaskElement(task) {
   const project = document.createElement("span");
   const status = document.createElement("span");
   const deleteButton = document.createElement("button");
+  const contract = contracts.find((item) => item.id === task.contractId);
 
   taskElement.className = "task";
   main.className = "task__main";
@@ -107,11 +128,68 @@ function createTaskElement(task) {
     main,
     createMeta("Срок", formatDate(task.deadline)),
     createMeta("Оценка", formatEstimate(task.estimate)),
+    createMeta("Контракт", contract ? contract.name : "Без контракта"),
     status,
     deleteButton
   );
 
   return taskElement;
+}
+
+function getContractHours(contractId) {
+  return tasks.reduce((total, task) => {
+    return task.contractId === contractId ? total + task.estimate : total;
+  }, 0);
+}
+
+function createContractElement(contract) {
+  const contractElement = document.createElement("article");
+  const title = document.createElement("h3");
+  const metrics = document.createElement("dl");
+  const taskHours = getContractHours(contract.id);
+  const remainingHours = contract.limit - taskHours;
+
+  contractElement.className = "contract";
+  title.className = "contract__title";
+  metrics.className = "contract__metrics";
+  title.textContent = contract.name;
+  metrics.append(
+    createSummaryMetric("Лимит", formatEstimate(contract.limit)),
+    createSummaryMetric("В задачах", formatEstimate(taskHours)),
+    createSummaryMetric(
+      remainingHours >= 0 ? "Осталось" : "Превышение",
+      formatEstimate(Math.abs(remainingHours))
+    )
+  );
+  contractElement.append(title, metrics);
+
+  return contractElement;
+}
+
+function renderContractOptions() {
+  const selectedContractId = contractSelect.value;
+  const emptyOption = document.createElement("option");
+
+  emptyOption.value = "";
+  emptyOption.textContent = "Без контракта";
+  contractSelect.replaceChildren(emptyOption);
+
+  contracts.forEach((contract) => {
+    const option = document.createElement("option");
+    option.value = contract.id;
+    option.textContent = contract.name;
+    contractSelect.append(option);
+  });
+
+  if (contracts.some((contract) => contract.id === selectedContractId)) {
+    contractSelect.value = selectedContractId;
+  }
+}
+
+function renderContracts() {
+  contractsList.replaceChildren(...contracts.map(createContractElement));
+  contractsEmptyState.hidden = contracts.length > 0;
+  renderContractOptions();
 }
 
 function deleteTask(taskId) {
@@ -193,7 +271,20 @@ function renderTasks() {
   tasksList.replaceChildren(...tasks.map(createTaskElement));
   emptyState.hidden = tasks.length > 0;
   tasksCount.textContent = `${tasks.length} ${getTasksWord(tasks.length)}`;
+  renderContracts();
   renderProjectSummaries();
+}
+
+function validateContract(contract) {
+  if (!contract.name) {
+    return "Введите название контракта.";
+  }
+
+  if (!Number.isFinite(contract.limit) || contract.limit <= 0 || contract.limit * 2 % 1 !== 0) {
+    return "Лимит должен быть больше 0 и указан с шагом 0,5 часа.";
+  }
+
+  return "";
 }
 
 function validateTask(task) {
@@ -209,8 +300,36 @@ function validateTask(task) {
     return "Выберите допустимый статус задачи.";
   }
 
+  if (task.contractId && !contracts.some((contract) => contract.id === task.contractId)) {
+    return "Выберите существующий контракт.";
+  }
+
   return "";
 }
+
+contractForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const formData = new FormData(contractForm);
+  const contract = {
+    id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    name: formData.get("name").trim(),
+    limit: Number(formData.get("limit"))
+  };
+  const validationError = validateContract(contract);
+
+  if (validationError) {
+    contractFormError.textContent = validationError;
+    return;
+  }
+
+  contracts.push(contract);
+  saveContracts();
+  renderContracts();
+  contractForm.reset();
+  contractFormError.textContent = "";
+  document.querySelector("#contract-name").focus();
+});
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -222,7 +341,8 @@ form.addEventListener("submit", (event) => {
     project: formData.get("project").trim(),
     deadline: formData.get("deadline"),
     estimate: Number(formData.get("estimate")),
-    status: formData.get("status")
+    status: formData.get("status"),
+    contractId: formData.get("contract") || null
   };
   const validationError = validateTask(task);
 

@@ -15,6 +15,27 @@
       <p class="page__description">Добавляйте задачи и держите сроки под контролем.</p>
     </header>
 
+    <section class="card" aria-labelledby="new-contract-title">
+      <h2 id="new-contract-title">Новый контракт</h2>
+
+      <form id="contract-form" novalidate>
+        <div class="form-grid">
+          <label class="field">
+            <span>Название</span>
+            <input id="contract-name" name="name" type="text" placeholder="Например, Поддержка сайта" required>
+          </label>
+
+          <label class="field">
+            <span>Лимит часов</span>
+            <input id="contract-limit" name="limit" type="number" min="0.5" step="0.5" placeholder="10" inputmode="decimal" required>
+          </label>
+        </div>
+
+        <p id="contract-form-error" class="form-error" role="alert" aria-live="polite"></p>
+        <button class="button" type="submit">Добавить контракт</button>
+      </form>
+    </section>
+
     <section class="card" aria-labelledby="new-task-title">
       <h2 id="new-task-title">Новая задача</h2>
 
@@ -48,11 +69,24 @@
               <option value="Готово">Готово</option>
             </select>
           </label>
+
+          <label class="field">
+            <span>Контракт</span>
+            <select id="contract" name="contract">
+              <option value="">Без контракта</option>
+            </select>
+          </label>
         </div>
 
         <p id="form-error" class="form-error" role="alert" aria-live="polite"></p>
         <button class="button" type="submit">Добавить задачу</button>
       </form>
+    </section>
+
+    <section class="contracts" aria-labelledby="contracts-title">
+      <h2 id="contracts-title">Контракты</h2>
+      <div id="contracts-list" class="contracts__list"></div>
+      <p id="contracts-empty-state" class="empty-state">Контрактов пока нет</p>
     </section>
 
     <section class="summaries" aria-labelledby="summaries-title">
